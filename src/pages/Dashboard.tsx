@@ -1,13 +1,16 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/layout/Header";
 import { DailyPlanCard } from "@/components/dashboard/DailyPlanCard";
 import { StreakCard } from "@/components/dashboard/StreakCard";
 import { GoalProgressCard } from "@/components/dashboard/GoalProgressCard";
 import { CreateGoalModal } from "@/components/dashboard/CreateGoalModal";
-import { Plus, Calendar, Bell, Settings } from "lucide-react";
+import { Plus, Calendar, Bell, Settings, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mock data for demonstration
 const mockDailyTasks = [
@@ -66,19 +69,72 @@ const mockSkills = [
 ];
 
 export default function Dashboard() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
+  const [displayName, setDisplayName] = useState("");
 
-  const handleCreateGoal = (goal: {
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      // Get display name from user metadata
+      const name = user.user_metadata?.display_name || user.email?.split("@")[0] || "Learner";
+      setDisplayName(name);
+    }
+  }, [user]);
+
+  const handleCreateGoal = async (goal: {
     title: string;
     category: string;
     timeline: string;
     effort: string;
   }) => {
-    toast.success("Goal created successfully!", {
-      description: `"${goal.title}" has been added to your learning path.`,
+    if (!user) return;
+
+    // Calculate days remaining based on timeline
+    const daysMap: Record<string, number> = {
+      "1month": 30,
+      "3months": 90,
+      "6months": 180,
+      "1year": 365,
+    };
+
+    const { error } = await supabase.from("goals").insert({
+      user_id: user.id,
+      title: goal.title,
+      category: goal.category,
+      timeline: goal.timeline,
+      effort_level: goal.effort,
+      days_remaining: daysMap[goal.timeline] || 90,
     });
-    setIsCreateGoalOpen(false);
+
+    if (error) {
+      toast.error("Failed to create goal. Please try again.");
+      console.error("Error creating goal:", error);
+    } else {
+      toast.success("Goal created successfully!", {
+        description: `"${goal.title}" has been added to your learning path.`,
+      });
+      setIsCreateGoalOpen(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,7 +150,7 @@ export default function Dashboard() {
           >
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-                Good morning, Learner! 👋
+                Good morning, {displayName}! 👋
               </h1>
               <p className="text-muted-foreground">
                 Ready for today's learning session? Let's make progress together.
@@ -134,7 +190,11 @@ export default function Dashboard() {
                     Today's Learning Plan
                   </h2>
                   <span className="text-sm text-muted-foreground">
-                    Thursday, Dec 28
+                    {new Date().toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </span>
                 </div>
                 <DailyPlanCard
