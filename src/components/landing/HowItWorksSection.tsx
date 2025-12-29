@@ -55,7 +55,7 @@ export const HowItWorksSection = () => {
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
             Your Journey to{" "}
-            <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-sky-400 bg-clip-text text-transparent">
               Mastery
             </span>
           </h2>
