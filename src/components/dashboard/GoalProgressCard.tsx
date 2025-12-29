@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { ChevronRight, Target } from "lucide-react";
+import { ChevronRight, Target, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Skill {
   name: string;
@@ -12,6 +13,7 @@ interface GoalProgressCardProps {
   overallProgress: number;
   skills: Skill[];
   daysRemaining: number;
+  onAddSkill?: () => void;
 }
 
 export const GoalProgressCard = ({
@@ -19,6 +21,7 @@ export const GoalProgressCard = ({
   overallProgress,
   skills,
   daysRemaining,
+  onAddSkill,
 }: GoalProgressCardProps) => {
   return (
     <motion.div
@@ -62,29 +65,49 @@ export const GoalProgressCard = ({
 
       {/* Skills breakdown */}
       <div className="space-y-4">
-        <h4 className="text-sm font-medium text-foreground">Skills Breakdown</h4>
-        {skills.map((skill, index) => (
-          <motion.div
-            key={skill.name}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 + index * 0.1 }}
-          >
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-muted-foreground">{skill.name}</span>
-              <span className="font-medium text-foreground">{skill.progress}%</span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${skill.progress}%` }}
-                transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-                className="h-full rounded-full"
-                style={{ backgroundColor: `hsl(${skill.color})` }}
-              />
-            </div>
-          </motion.div>
-        ))}
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-medium text-foreground">Skills Breakdown</h4>
+          {onAddSkill && (
+            <Button variant="ghost" size="sm" onClick={onAddSkill} className="h-7 px-2">
+              <Plus className="w-3 h-3 mr-1" />
+              Add
+            </Button>
+          )}
+        </div>
+        {skills.length === 0 ? (
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground mb-2">No skills tracked yet</p>
+            {onAddSkill && (
+              <Button variant="outline" size="sm" onClick={onAddSkill}>
+                <Plus className="w-4 h-4 mr-1" />
+                Add Skill
+              </Button>
+            )}
+          </div>
+        ) : (
+          skills.map((skill, index) => (
+            <motion.div
+              key={skill.name}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 + index * 0.1 }}
+            >
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-muted-foreground">{skill.name}</span>
+                <span className="font-medium text-foreground">{skill.progress}%</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${skill.progress}%` }}
+                  transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: `hsl(${skill.color})` }}
+                />
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
     </motion.div>
   );

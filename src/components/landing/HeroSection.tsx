@@ -64,15 +64,12 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link to="/dashboard">
+            <Link to="/auth">
               <Button variant="hero" size="xl" className="group">
                 Start Learning Free
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
-            <Button variant="hero-outline" size="xl">
-              See How It Works
-            </Button>
           </motion.div>
 
           {/* Stats */}
