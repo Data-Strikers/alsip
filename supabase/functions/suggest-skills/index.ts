@@ -34,32 +34,33 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a career advisor and skill gap analyst. Your job is to identify SPECIFIC, CONCRETE skills needed for career goals.
+            content: `You are a career advisor and learning path designer. Your job is to identify SPECIFIC LEARNING TOPICS that someone needs to master.
 
 CRITICAL RULES:
-- Give EXACT skill names like "Python", "AWS Lambda", "React.js", "SQL", "Kubernetes", "Figma", "Power BI", "TensorFlow"
-- NEVER use vague terms like "Core Fundamentals", "Problem Solving", "Communication", "Technical Skills"
-- Every skill must be something you can search for on LinkedIn Jobs or Udemy
-- Include specific tools, frameworks, languages, and certifications
+- Break down skills into LEARNABLE TOPICS, not just skill names
+- For "Python": suggest "Python Variables & Data Types", "Python Lists & Dictionaries", "Python Loops & Conditions", "Python Functions", "Python File Handling", "Python OOP"
+- For "Machine Learning": suggest "Linear Regression", "Decision Trees", "Neural Networks", "Pandas for Data Analysis", "Scikit-learn Basics", "TensorFlow Fundamentals"
+- Each topic should be something you can learn in 1-2 weeks
+- Topics should build on each other logically (fundamentals first, advanced later)
 
 Focus on:
-1. Specific technical tools and languages required for the role
-2. Specific platforms and frameworks employers are hiring for
-3. Industry-specific certifications that boost job security
+1. Foundational concepts that must be learned first
+2. Intermediate topics that build on fundamentals
+3. Advanced/specialized topics for job readiness
 
 Respond with a JSON object containing an array of skills, each with:
-- name: SPECIFIC skill/tool name (e.g., "Python", "AWS", "Tableau", "Docker")
-- importance: "critical" | "important" | "nice-to-have"
-- futureProof: boolean (true if this skill will remain relevant in 5+ years)
-- reason: brief explanation (1 sentence) mentioning job market demand or salary impact
+- name: SPECIFIC learning topic (e.g., "Python Lists & Dictionaries", "SQL JOINs & Subqueries", "React Hooks")
+- importance: "critical" (learn first) | "important" (learn next) | "nice-to-have" (advanced)
+- futureProof: boolean (true if this topic will remain relevant in 5+ years)
+- reason: brief explanation (1 sentence) of what you'll be able to do after learning this
 
-Return exactly 6-8 skills. Only return valid JSON, no markdown or explanation.`
+Return exactly 8-12 topics in logical learning order. Only return valid JSON, no markdown or explanation.`
           },
           {
             role: "user",
             content: `Goal: "${goalTitle}"${category ? ` (Category: ${category})` : ""}
 
-List the SPECIFIC tools, technologies, frameworks, and certifications someone needs to achieve this goal. Be concrete - name exact technologies like "Python", "AWS", "Salesforce", not vague categories.`
+Break this goal into SPECIFIC LEARNABLE TOPICS in logical order. Start with fundamentals (variables, basics) and progress to advanced topics. Each topic should be concrete enough to find a tutorial or course for it.`
           }
         ],
         temperature: 0.7,
@@ -92,9 +93,11 @@ List the SPECIFIC tools, technologies, frameworks, and certifications someone ne
       // Fallback skills if AI response is malformed
       skills = {
         skills: [
-          { name: "Python", importance: "critical", futureProof: true, reason: "Most in-demand programming language across industries" },
-          { name: "SQL", importance: "critical", futureProof: true, reason: "Essential for data management in 90% of companies" },
-          { name: "Git", importance: "important", futureProof: true, reason: "Version control is required in every tech job" },
+          { name: "Python Variables & Data Types", importance: "critical", futureProof: true, reason: "Foundation for all Python programming" },
+          { name: "Python Lists & Dictionaries", importance: "critical", futureProof: true, reason: "Essential data structures for any Python project" },
+          { name: "Python Loops & Conditions", importance: "critical", futureProof: true, reason: "Control flow for building logic" },
+          { name: "Python Functions", importance: "important", futureProof: true, reason: "Write reusable, organized code" },
+          { name: "Python File Handling", importance: "important", futureProof: true, reason: "Read/write data from files" },
         ]
       };
     }
