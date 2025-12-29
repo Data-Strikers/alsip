@@ -93,6 +93,7 @@ export type Database = {
           description: string | null
           difficulty: string | null
           duration_minutes: number | null
+          has_certification: boolean | null
           id: string
           is_featured: boolean | null
           provider: string | null
@@ -108,6 +109,7 @@ export type Database = {
           description?: string | null
           difficulty?: string | null
           duration_minutes?: number | null
+          has_certification?: boolean | null
           id?: string
           is_featured?: boolean | null
           provider?: string | null
@@ -123,6 +125,7 @@ export type Database = {
           description?: string | null
           difficulty?: string | null
           duration_minutes?: number | null
+          has_certification?: boolean | null
           id?: string
           is_featured?: boolean | null
           provider?: string | null
