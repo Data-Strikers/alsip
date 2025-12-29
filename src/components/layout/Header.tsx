@@ -1,14 +1,27 @@
 import { motion } from "framer-motion";
-import { GraduationCap, Menu, X, LogOut, User } from "lucide-react";
+import { GraduationCap, Menu, X, LogOut, User, LayoutDashboard, BookOpen, Target, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
-const navItems = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon?: LucideIcon;
+}
+
+// Navigation for logged out users (landing page)
+const publicNavItems: NavItem[] = [
   { label: "Features", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
-  { label: "Dashboard", href: "/dashboard" },
+];
+
+// Navigation for logged in users (dashboard)
+const privateNavItems: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Resources", href: "/dashboard#resources", icon: BookOpen },
+  { label: "Goals", href: "/dashboard#goals", icon: Target },
 ];
 
 export const Header = () => {
@@ -22,6 +35,8 @@ export const Header = () => {
     navigate("/");
   };
 
+  const navItems: NavItem[] = user ? privateNavItems : publicNavItems;
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -32,7 +47,7 @@ export const Header = () => {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 group">
             <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-soft group-hover:shadow-glow transition-shadow duration-300">
               <GraduationCap className="w-5 h-5 text-primary-foreground" />
             </div>
@@ -48,12 +63,13 @@ export const Header = () => {
                 <Link
                   key={item.label}
                   to={item.href}
-                  className={`text-sm font-medium transition-colors duration-200 ${
-                    location.pathname === item.href
+                  className={`text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 ${
+                    location.pathname === item.href.split("#")[0]
                       ? "text-primary"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
+                  {item.icon && <item.icon className="w-4 h-4" />}
                   {item.label}
                 </Link>
               ) : (
@@ -77,7 +93,7 @@ export const Header = () => {
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent">
                   <User className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium text-foreground">
-                    {user.email?.split("@")[0]}
+                    {user.user_metadata?.display_name || user.email?.split("@")[0]}
                   </span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={handleSignOut}>
@@ -126,10 +142,11 @@ export const Header = () => {
                     key={item.label}
                     to={item.href}
                     onClick={() => setIsOpen(false)}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  >
-                    {item.label}
-                  </Link>
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-2"
+                >
+                  {item.icon && <item.icon className="w-4 h-4" />}
+                  {item.label}
+                </Link>
                 ) : (
                   <a
                     key={item.label}
@@ -147,7 +164,7 @@ export const Header = () => {
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent">
                       <User className="w-4 h-4 text-primary" />
                       <span className="text-sm font-medium text-foreground">
-                        {user.email?.split("@")[0]}
+                        {user.user_metadata?.display_name || user.email?.split("@")[0]}
                       </span>
                     </div>
                     <Button variant="ghost" size="sm" className="w-full" onClick={handleSignOut}>

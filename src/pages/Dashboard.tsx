@@ -9,7 +9,7 @@ import { CreateGoalModal } from "@/components/dashboard/CreateGoalModal";
 import { AddSkillModal } from "@/components/dashboard/AddSkillModal";
 import { ResourceLibrary } from "@/components/dashboard/ResourceLibrary";
 import { SkillSuggestionsCard } from "@/components/dashboard/SkillSuggestionsCard";
-import { Plus, Calendar, Bell, Settings, Loader2, Target, Sparkles, BookOpen } from "lucide-react";
+import { Plus, Calendar, Bell, Settings, Loader2, Target, Sparkles, BookOpen, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +30,8 @@ interface Skill {
   name: string;
   progress: number | null;
   goal_id: string;
+  days_practiced: number | null;
+  last_practiced_date: string | null;
 }
 
 interface Streak {
@@ -178,16 +180,38 @@ export default function Dashboard() {
     }
   };
 
-  const handleUpdateSkillProgress = async (skillId: string, newProgress: number) => {
+  const handleLogPractice = async (skillId: string) => {
+    const skill = skills.find((s) => s.id === skillId);
+    if (!skill) return;
+
+    const today = new Date().toISOString().split("T")[0];
+    const lastPracticed = skill.last_practiced_date;
+
+    // Check if already practiced today
+    if (lastPracticed === today) {
+      toast.info("Already logged today!", {
+        description: "Come back tomorrow to log more practice.",
+      });
+      return;
+    }
+
+    const newDays = (skill.days_practiced || 0) + 1;
+
     const { error } = await supabase
       .from("skills")
-      .update({ progress: newProgress })
+      .update({ 
+        days_practiced: newDays,
+        last_practiced_date: today,
+      })
       .eq("id", skillId);
 
     if (error) {
-      toast.error("Failed to update progress.");
+      toast.error("Failed to log practice.");
       console.error("Error updating skill:", error);
     } else {
+      toast.success(`Day ${newDays} logged!`, {
+        description: "Keep up the great work!",
+      });
       fetchData();
     }
   };
@@ -429,46 +453,59 @@ export default function Dashboard() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {skills.map((skill, index) => (
-                          <motion.div
-                            key={skill.id}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="bg-card rounded-xl border border-border/50 shadow-card p-4"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium text-foreground">{skill.name}</span>
-                              <span className="text-sm text-primary font-semibold">
-                                {skill.progress || 0}%
-                              </span>
-                            </div>
-                            <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${skill.progress || 0}%` }}
-                                transition={{ duration: 0.6 }}
-                                className="h-full rounded-full"
-                                style={{ backgroundColor: `hsl(${skillColors[index % skillColors.length]})` }}
-                              />
-                            </div>
-                            <div className="flex gap-2">
-                              {[25, 50, 75, 100].map((val) => (
-                                <button
-                                  key={val}
-                                  onClick={() => handleUpdateSkillProgress(skill.id, val)}
-                                  className={`flex-1 py-1 text-xs rounded-lg transition-colors ${
-                                    (skill.progress || 0) >= val
-                                      ? "bg-primary/20 text-primary"
-                                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                  }`}
-                                >
-                                  {val}%
-                                </button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        ))}
+                        {skills.map((skill, index) => {
+                          const today = new Date().toISOString().split("T")[0];
+                          const practicedToday = skill.last_practiced_date === today;
+                          return (
+                            <motion.div
+                              key={skill.id}
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: index * 0.05 }}
+                              className="bg-card rounded-xl border border-border/50 shadow-card p-4"
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium text-foreground">{skill.name}</span>
+                                <span className="text-sm text-primary font-semibold">
+                                  {skill.days_practiced || 0} days
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                                  <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${Math.min((skill.days_practiced || 0) * 3.33, 100)}%` }}
+                                    transition={{ duration: 0.6 }}
+                                    className="h-full rounded-full"
+                                    style={{ backgroundColor: `hsl(${skillColors[index % skillColors.length]})` }}
+                                  />
+                                </div>
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                  {skill.days_practiced || 0}/30
+                                </span>
+                              </div>
+                              <Button
+                                variant={practicedToday ? "outline" : "default"}
+                                size="sm"
+                                className="w-full"
+                                onClick={() => handleLogPractice(skill.id)}
+                                disabled={practicedToday}
+                              >
+                                {practicedToday ? (
+                                  <>
+                                    <Check className="w-4 h-4 mr-1" />
+                                    Practiced Today
+                                  </>
+                                ) : (
+                                  <>
+                                    <Calendar className="w-4 h-4 mr-1" />
+                                    Log Practice
+                                  </>
+                                )}
+                              </Button>
+                            </motion.div>
+                          );
+                        })}
                       </div>
                     )}
                   </motion.div>
