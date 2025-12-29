@@ -62,7 +62,7 @@ export const CTASection = () => {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <Link to="/dashboard">
+              <Link to="/auth">
                 <Button
                   size="xl"
                   className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-medium hover:shadow-glow group"
@@ -71,13 +71,6 @@ export const CTASection = () => {
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
-              <Button
-                size="xl"
-                variant="ghost"
-                className="text-primary-foreground hover:bg-primary-foreground/10"
-              >
-                Watch Demo
-              </Button>
             </motion.div>
           </div>
         </motion.div>
