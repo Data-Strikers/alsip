@@ -34,21 +34,24 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a career advisor and skill gap analyst. Your job is to identify the essential skills needed for career goals, focusing on:
-1. Core technical skills required for the role
-2. Emerging skills that will be important in the next 2-5 years
-3. Soft skills that differentiate top performers
+            content: `You are a career advisor and skill gap analyst. Your job is to identify SPECIFIC, CONCRETE skills needed for career goals.
 
-Always prioritize skills that:
-- Are in high demand in the job market
-- Help professionals stay relevant and avoid layoffs
-- Can be learned through free or low-cost resources
+CRITICAL RULES:
+- Give EXACT skill names like "Python", "AWS Lambda", "React.js", "SQL", "Kubernetes", "Figma", "Power BI", "TensorFlow"
+- NEVER use vague terms like "Core Fundamentals", "Problem Solving", "Communication", "Technical Skills"
+- Every skill must be something you can search for on LinkedIn Jobs or Udemy
+- Include specific tools, frameworks, languages, and certifications
+
+Focus on:
+1. Specific technical tools and languages required for the role
+2. Specific platforms and frameworks employers are hiring for
+3. Industry-specific certifications that boost job security
 
 Respond with a JSON object containing an array of skills, each with:
-- name: skill name (concise, 2-4 words max)
+- name: SPECIFIC skill/tool name (e.g., "Python", "AWS", "Tableau", "Docker")
 - importance: "critical" | "important" | "nice-to-have"
 - futureProof: boolean (true if this skill will remain relevant in 5+ years)
-- reason: brief explanation (1 sentence) of why this skill matters
+- reason: brief explanation (1 sentence) mentioning job market demand or salary impact
 
 Return exactly 6-8 skills. Only return valid JSON, no markdown or explanation.`
           },
@@ -56,7 +59,7 @@ Return exactly 6-8 skills. Only return valid JSON, no markdown or explanation.`
             role: "user",
             content: `Goal: "${goalTitle}"${category ? ` (Category: ${category})` : ""}
 
-What skills does someone need to master to achieve this goal and remain competitive in the job market? Focus on skills that protect against layoffs and increase job security.`
+List the SPECIFIC tools, technologies, frameworks, and certifications someone needs to achieve this goal. Be concrete - name exact technologies like "Python", "AWS", "Salesforce", not vague categories.`
           }
         ],
         temperature: 0.7,
@@ -89,9 +92,9 @@ What skills does someone need to master to achieve this goal and remain competit
       // Fallback skills if AI response is malformed
       skills = {
         skills: [
-          { name: "Core Fundamentals", importance: "critical", futureProof: true, reason: "Foundation for all advanced learning" },
-          { name: "Problem Solving", importance: "critical", futureProof: true, reason: "Essential for any technical role" },
-          { name: "Communication", importance: "important", futureProof: true, reason: "Differentiates top performers" },
+          { name: "Python", importance: "critical", futureProof: true, reason: "Most in-demand programming language across industries" },
+          { name: "SQL", importance: "critical", futureProof: true, reason: "Essential for data management in 90% of companies" },
+          { name: "Git", importance: "important", futureProof: true, reason: "Version control is required in every tech job" },
         ]
       };
     }
