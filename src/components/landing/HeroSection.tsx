@@ -24,7 +24,7 @@ export const HeroSection = () => {
           >
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-foreground">
-              Free-First Learning Platform
+              Future-Proof Your Career
             </span>
           </motion.div>
 
@@ -35,12 +35,14 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-6"
           >
-            Small Change.{" "}
+            The Skills You Have.{" "}
             <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
-              Big Impact
+              The Skills You Need.
             </span>
             <br />
-            Learning System
+            <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-muted-foreground">
+              Bridge the Gap.
+            </span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -50,9 +52,9 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
           >
-            Transform any goal into engaging daily learning experiences. Build
-            consistency, autonomy, and sustainable skill development—without
-            burnout or boredom.
+            In a world where skills become obsolete overnight, staying relevant is survival. 
+            ALSIP identifies your skill gaps and builds a personalized learning path to keep you 
+            <span className="text-foreground font-medium"> indispensable</span> in your field.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -81,9 +83,9 @@ export const HeroSection = () => {
             className="grid grid-cols-3 gap-4 sm:gap-8 mt-16 max-w-xl mx-auto"
           >
             {[
-              { icon: Target, label: "Goals Achieved", value: "10K+" },
-              { icon: TrendingUp, label: "Active Learners", value: "25K+" },
-              { icon: Sparkles, label: "Daily Sessions", value: "50K+" },
+              { icon: Target, label: "Skill Gaps Closed", value: "10K+" },
+              { icon: TrendingUp, label: "Careers Secured", value: "25K+" },
+              { icon: Sparkles, label: "Daily Learners", value: "50K+" },
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}

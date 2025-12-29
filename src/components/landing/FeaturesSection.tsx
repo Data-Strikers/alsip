@@ -1,70 +1,70 @@
 import { motion } from "framer-motion";
 import {
+  AlertTriangle,
   Brain,
   Flame,
-  Heart,
   Lightbulb,
   RefreshCw,
   Shield,
   Target,
-  Wallet,
+  TrendingUp,
 } from "lucide-react";
 
 const features = [
   {
-    icon: Target,
-    title: "Goal-Based Learning",
+    icon: AlertTriangle,
+    title: "Skill Gap Detection",
     description:
-      "Define any goal—technical, creative, fitness, academic—and we'll create a personalized learning path.",
-    color: "mode-concept",
-  },
-  {
-    icon: Brain,
-    title: "Skill Decomposition",
-    description:
-      "Goals break down into sub-goals, skills, and daily learning experiences automatically.",
-    color: "mode-application",
-  },
-  {
-    icon: RefreshCw,
-    title: "Anti-Boredom Variety",
-    description:
-      "Rotates between concepts, applications, analysis, reviews, and revisions to keep you engaged.",
-    color: "mode-analysis",
-  },
-  {
-    icon: Lightbulb,
-    title: "Learning Autonomy",
-    description:
-      "Progressive hints, no direct solutions, and reflection-gated progression build independence.",
+      "Identify the critical skills you're missing that employers demand. Know exactly where you stand before it's too late.",
     color: "mode-review",
   },
   {
-    icon: Flame,
-    title: "Consistency Protection",
+    icon: TrendingUp,
+    title: "Future-Proof Intelligence",
     description:
-      "Engagement drop detection, adaptive difficulty, and streak preservation keep you on track.",
-    color: "mode-revision",
-  },
-  {
-    icon: Heart,
-    title: "Personal Rhythm",
-    description:
-      "Adjusts daily workload based on your time, energy, and past engagement patterns.",
+      "Stay ahead of industry shifts. We track emerging skills and warn you about obsolete ones before they hurt your career.",
     color: "mode-concept",
   },
   {
-    icon: Wallet,
-    title: "Free-First Resources",
+    icon: Target,
+    title: "Personalized Learning Paths",
     description:
-      "Always prioritizes free resources, with optional low-cost and paid alternatives.",
+      "Turn any career goal into a structured daily plan. From where you are to where you need to be.",
+    color: "mode-application",
+  },
+  {
+    icon: Brain,
+    title: "Smart Skill Mapping",
+    description:
+      "We break down complex skills into achievable daily learning experiences. No overwhelm, just progress.",
+    color: "mode-analysis",
+  },
+  {
+    icon: RefreshCw,
+    title: "Anti-Boredom System",
+    description:
+      "Varied learning modes prevent burnout: concepts, hands-on practice, analysis, and reflection keep you engaged.",
+    color: "mode-revision",
+  },
+  {
+    icon: Flame,
+    title: "Consistency Engine",
+    description:
+      "Streak tracking, adaptive difficulty, and engagement detection ensure you never fall behind.",
+    color: "mode-concept",
+  },
+  {
+    icon: Lightbulb,
+    title: "Learn to Learn",
+    description:
+      "Build independence with progressive hints and reflection-based growth. No spoon-feeding.",
     color: "mode-application",
   },
   {
     icon: Shield,
-    title: "Local-First Privacy",
+    title: "Free-First Resources",
     description:
-      "Runs on your local setup with FastAPI and MySQL—no cloud dependency required.",
+      "Always prioritizes free learning materials. Budget-aware recommendations that respect your wallet.",
     color: "mode-analysis",
   },
 ];
@@ -82,18 +82,18 @@ export const FeaturesSection = () => {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <span className="inline-block px-4 py-1.5 rounded-full bg-accent text-primary text-sm font-medium mb-4">
-            Features
+            Why ALSIP
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Everything You Need to{" "}
+            Stay Relevant.{" "}
             <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
-              Learn Better
+              Stay Employed.
             </span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            ALSIP focuses on how you learn, not just what you learn. Our
-            behavior-centric approach prevents burnout and builds lasting
-            habits.
+            The job market doesn't wait. ALSIP helps you identify skill gaps, 
+            learn what matters, and build the expertise that keeps you 
+            indispensable—before layoffs happen.
           </p>
         </motion.div>
 
