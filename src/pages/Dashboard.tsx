@@ -8,6 +8,7 @@ import { GoalProgressCard } from "@/components/dashboard/GoalProgressCard";
 import { CreateGoalModal } from "@/components/dashboard/CreateGoalModal";
 import { AddSkillModal } from "@/components/dashboard/AddSkillModal";
 import { ResourceLibrary } from "@/components/dashboard/ResourceLibrary";
+import { SkillSuggestionsCard } from "@/components/dashboard/SkillSuggestionsCard";
 import { Plus, Calendar, Bell, Settings, Loader2, Target, Sparkles, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -471,6 +472,18 @@ export default function Dashboard() {
                       </div>
                     )}
                   </motion.div>
+                )}
+
+                {/* AI Skill Suggestions */}
+                {activeGoal && user && (
+                  <SkillSuggestionsCard
+                    goalId={activeGoal.id}
+                    goalTitle={activeGoal.title}
+                    category={activeGoal.category}
+                    existingSkills={skills.map((s) => s.name)}
+                    onSkillAdded={fetchData}
+                    userId={user.id}
+                  />
                 )}
               </div>
 
