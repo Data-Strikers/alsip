@@ -7,10 +7,29 @@ import { DailyPlanCard } from "@/components/dashboard/DailyPlanCard";
 import { StreakCard } from "@/components/dashboard/StreakCard";
 import { GoalProgressCard } from "@/components/dashboard/GoalProgressCard";
 import { CreateGoalModal } from "@/components/dashboard/CreateGoalModal";
-import { Plus, Calendar, Bell, Settings, Loader2 } from "lucide-react";
+import { ResourceLibrary } from "@/components/dashboard/ResourceLibrary";
+import { Plus, Calendar, Bell, Settings, Loader2, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+
+interface Goal {
+  id: string;
+  title: string;
+  category: string;
+  timeline: string;
+  effort_level: string;
+  progress: number | null;
+  days_remaining: number | null;
+  is_active: boolean | null;
+}
+
+interface Skill {
+  id: string;
+  name: string;
+  progress: number | null;
+  goal_id: string;
+}
 
 // Mock data for demonstration
 const mockDailyTasks = [
@@ -61,11 +80,11 @@ const mockWeekData = [
   { day: "Sun", completed: false },
 ];
 
-const mockSkills = [
-  { name: "Python Basics", progress: 85, color: "var(--mode-concept)" },
-  { name: "Data Structures", progress: 62, color: "var(--mode-application)" },
-  { name: "Functions & OOP", progress: 45, color: "var(--mode-analysis)" },
-  { name: "File Handling", progress: 28, color: "var(--mode-review)" },
+const skillColors = [
+  "var(--primary)",
+  "210 80% 50%",
+  "200 70% 45%",
+  "220 75% 55%",
 ];
 
 export default function Dashboard() {
@@ -73,6 +92,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [goalsLoading, setGoalsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -85,8 +107,45 @@ export default function Dashboard() {
       // Get display name from user metadata
       const name = user.user_metadata?.display_name || user.email?.split("@")[0] || "Learner";
       setDisplayName(name);
+      fetchGoalsAndSkills();
     }
   }, [user]);
+
+  const fetchGoalsAndSkills = async () => {
+    if (!user) return;
+    
+    setGoalsLoading(true);
+    
+    // Fetch goals
+    const { data: goalsData, error: goalsError } = await supabase
+      .from("goals")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    if (goalsError) {
+      console.error("Error fetching goals:", goalsError);
+    } else if (goalsData) {
+      setGoals(goalsData);
+      
+      // Fetch skills for the first active goal
+      if (goalsData.length > 0) {
+        const { data: skillsData, error: skillsError } = await supabase
+          .from("skills")
+          .select("*")
+          .eq("goal_id", goalsData[0].id);
+
+        if (skillsError) {
+          console.error("Error fetching skills:", skillsError);
+        } else if (skillsData) {
+          setSkills(skillsData);
+        }
+      }
+    }
+    
+    setGoalsLoading(false);
+  };
 
   const handleCreateGoal = async (goal: {
     title: string;
@@ -121,8 +180,16 @@ export default function Dashboard() {
         description: `"${goal.title}" has been added to your learning path.`,
       });
       setIsCreateGoalOpen(false);
+      fetchGoalsAndSkills(); // Refresh goals
     }
   };
+
+  const activeGoal = goals[0];
+  const formattedSkills = skills.map((skill, index) => ({
+    name: skill.name,
+    progress: skill.progress || 0,
+    color: skillColors[index % skillColors.length],
+  }));
 
   if (loading) {
     return (
@@ -250,12 +317,39 @@ export default function Dashboard() {
                 longestStreak={12}
                 weekData={mockWeekData}
               />
-              <GoalProgressCard
-                goalName="Learn Python in 3 Months"
-                overallProgress={48}
-                skills={mockSkills}
-                daysRemaining={45}
-              />
+              {activeGoal ? (
+                <GoalProgressCard
+                  goalName={activeGoal.title}
+                  overallProgress={activeGoal.progress || 0}
+                  skills={formattedSkills.length > 0 ? formattedSkills : [
+                    { name: "Getting started...", progress: 0, color: skillColors[0] }
+                  ]}
+                  daysRemaining={activeGoal.days_remaining || 0}
+                />
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card rounded-2xl border border-border/50 shadow-card p-6 text-center"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <Target className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">No Active Goals</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Set a learning goal to start tracking your progress
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsCreateGoalOpen(true)}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Create Goal
+                  </Button>
+                </motion.div>
+              )}
+              <ResourceLibrary />
             </div>
           </div>
         </div>

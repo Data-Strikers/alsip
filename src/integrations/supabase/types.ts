@@ -86,6 +86,54 @@ export type Database = {
         }
         Relationships: []
       }
+      resources: {
+        Row: {
+          cost: string
+          created_at: string
+          description: string | null
+          difficulty: string | null
+          duration_minutes: number | null
+          id: string
+          is_featured: boolean | null
+          provider: string | null
+          rating: number | null
+          skill_category: string
+          title: string
+          type: string
+          url: string
+        }
+        Insert: {
+          cost?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_featured?: boolean | null
+          provider?: string | null
+          rating?: number | null
+          skill_category: string
+          title: string
+          type: string
+          url: string
+        }
+        Update: {
+          cost?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_featured?: boolean | null
+          provider?: string | null
+          rating?: number | null
+          skill_category?: string
+          title?: string
+          type?: string
+          url?: string
+        }
+        Relationships: []
+      }
       skills: {
         Row: {
           created_at: string
