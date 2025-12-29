@@ -86,7 +86,7 @@ export const FeaturesSection = () => {
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
             Everything You Need to{" "}
-            <span className="gradient-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
               Learn Better
             </span>
           </h2>
