@@ -174,30 +174,41 @@ export const SkillSuggestionsCard = ({
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-medium text-foreground text-sm">
-                          {skill.name}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${importanceColors[skill.importance]}`}
-                        >
-                          {skill.importance}
-                        </Badge>
-                        {skill.futureProof && (
+                    <div className="flex items-center gap-3">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                        skill.importance === "critical" 
+                          ? "bg-red-500/20 text-red-600" 
+                          : skill.importance === "important"
+                          ? "bg-amber-500/20 text-amber-600"
+                          : "bg-blue-500/20 text-blue-600"
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="font-medium text-foreground text-sm">
+                            {skill.name}
+                          </span>
                           <Badge
                             variant="outline"
-                            className="text-xs bg-green-500/10 text-green-600 border-green-500/20 gap-0.5"
+                            className={`text-xs ${importanceColors[skill.importance]}`}
                           >
-                            <Shield className="w-3 h-3" />
-                            Future-proof
+                            {skill.importance === "critical" ? "Learn First" : skill.importance === "important" ? "Learn Next" : "Advanced"}
                           </Badge>
-                        )}
+                          {skill.futureProof && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs bg-green-500/10 text-green-600 border-green-500/20 gap-0.5"
+                            >
+                              <Shield className="w-3 h-3" />
+                              Future-proof
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {skill.reason}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {skill.reason}
-                      </p>
                     </div>
                     <Button
                       variant={isAdded ? "ghost" : "outline"}
