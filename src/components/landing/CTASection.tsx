@@ -30,7 +30,7 @@ export const CTASection = () => {
             >
               <Sparkles className="w-4 h-4 text-primary-foreground" />
               <span className="text-sm font-medium text-primary-foreground">
-                100% Free to Start
+                Don't Wait Until It's Too Late
               </span>
             </motion.div>
 
@@ -41,7 +41,7 @@ export const CTASection = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary-foreground mb-6"
             >
-              Ready to Transform Your Learning?
+              Your Career Security Starts Today
             </motion.h2>
 
             <motion.p
@@ -51,8 +51,8 @@ export const CTASection = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="text-lg text-primary-foreground/80 mb-10"
             >
-              Join thousands of learners who are building sustainable skills,
-              one day at a time. No credit card required.
+              Every day without upskilling is a risk. Start identifying your skill gaps 
+              and building the expertise that makes you irreplaceable. 100% free to begin.
             </motion.p>
 
             <motion.div
@@ -67,7 +67,7 @@ export const CTASection = () => {
                   size="xl"
                   className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-medium hover:shadow-glow group"
                 >
-                  Start Your Journey
+                  Secure My Career
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
