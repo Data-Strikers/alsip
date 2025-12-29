@@ -9,7 +9,10 @@ import { CreateGoalModal } from "@/components/dashboard/CreateGoalModal";
 import { AddSkillModal } from "@/components/dashboard/AddSkillModal";
 import { ResourceLibrary } from "@/components/dashboard/ResourceLibrary";
 import { SkillSuggestionsCard } from "@/components/dashboard/SkillSuggestionsCard";
-import { Plus, Calendar, Bell, Settings, Loader2, Target, Sparkles, BookOpen, Check } from "lucide-react";
+import { LearningOutcomeModal } from "@/components/dashboard/LearningOutcomeModal";
+import { ConfidenceUpdateModal } from "@/components/dashboard/ConfidenceUpdateModal";
+import { RecoveryModeCard } from "@/components/dashboard/RecoveryModeCard";
+import { Plus, Calendar, Bell, User, Loader2, Target, Sparkles, BookOpen, Check, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,12 +35,16 @@ interface Skill {
   goal_id: string;
   days_practiced: number | null;
   last_practiced_date: string | null;
+  confidence_score: number | null;
+  last_confidence_update: string | null;
 }
 
 interface Streak {
   current_streak: number | null;
   longest_streak: number | null;
   last_activity_date: string | null;
+  is_in_recovery: boolean | null;
+  missed_days: number | null;
 }
 
 const skillColors = [
@@ -52,6 +59,10 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
   const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
+  const [isOutcomeModalOpen, setIsOutcomeModalOpen] = useState(false);
+  const [isConfidenceModalOpen, setIsConfidenceModalOpen] = useState(false);
+  const [selectedSkillForOutcome, setSelectedSkillForOutcome] = useState<Skill | null>(null);
+  const [selectedSkillForConfidence, setSelectedSkillForConfidence] = useState<Skill | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [goals, setGoals] = useState<Goal[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -209,11 +220,28 @@ export default function Dashboard() {
       toast.error("Failed to log practice.");
       console.error("Error updating skill:", error);
     } else {
-      toast.success(`Day ${newDays} logged!`, {
-        description: "Keep up the great work!",
-      });
+      // Open Learning Outcome Modal for reflection
+      setSelectedSkillForOutcome(skill);
+      setIsOutcomeModalOpen(true);
       fetchData();
     }
+  };
+
+  // Check if skill needs weekly confidence update
+  const needsConfidenceUpdate = (skill: Skill) => {
+    if (!skill.last_confidence_update) return skill.days_practiced && skill.days_practiced >= 7;
+    const lastUpdate = new Date(skill.last_confidence_update);
+    const daysSinceUpdate = Math.floor((Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+    return daysSinceUpdate >= 7;
+  };
+
+  // Check for recovery mode
+  const isInRecoveryMode = streak?.is_in_recovery || (streak?.missed_days && streak.missed_days >= 2);
+
+  const handleStartRecovery = () => {
+    toast.success("Recovery mode started!", {
+      description: "Take it easy today. Small progress counts.",
+    });
   };
 
   const activeGoal = goals[0];
@@ -287,8 +315,8 @@ export default function Dashboard() {
               <Button variant="outline" size="icon">
                 <Bell className="w-4 h-4" />
               </Button>
-              <Button variant="outline" size="icon">
-                <Settings className="w-4 h-4" />
+              <Button variant="outline" size="icon" onClick={() => navigate("/profile")}>
+                <User className="w-4 h-4" />
               </Button>
               <Button
                 variant="hero"
@@ -466,9 +494,16 @@ export default function Dashboard() {
                             >
                               <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium text-foreground">{skill.name}</span>
-                                <span className="text-sm text-primary font-semibold">
-                                  {skill.days_practiced || 0} days
-                                </span>
+                                <div className="flex items-center gap-2">
+                                  {skill.confidence_score && (
+                                    <span className="text-xs text-muted-foreground">
+                                      Confidence: {skill.confidence_score}/10
+                                    </span>
+                                  )}
+                                  <span className="text-sm text-primary font-semibold">
+                                    {skill.days_practiced || 0} days
+                                  </span>
+                                </div>
                               </div>
                               <div className="flex items-center gap-2 mb-3">
                                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
@@ -484,25 +519,39 @@ export default function Dashboard() {
                                   {skill.days_practiced || 0}/30
                                 </span>
                               </div>
-                              <Button
-                                variant={practicedToday ? "outline" : "default"}
-                                size="sm"
-                                className="w-full"
-                                onClick={() => handleLogPractice(skill.id)}
-                                disabled={practicedToday}
-                              >
-                                {practicedToday ? (
-                                  <>
-                                    <Check className="w-4 h-4 mr-1" />
-                                    Practiced Today
-                                  </>
-                                ) : (
-                                  <>
-                                    <Calendar className="w-4 h-4 mr-1" />
-                                    Log Practice
-                                  </>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant={practicedToday ? "outline" : "default"}
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => handleLogPractice(skill.id)}
+                                  disabled={practicedToday}
+                                >
+                                  {practicedToday ? (
+                                    <>
+                                      <Check className="w-4 h-4 mr-1" />
+                                      Done
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Calendar className="w-4 h-4 mr-1" />
+                                      Log Practice
+                                    </>
+                                  )}
+                                </Button>
+                                {needsConfidenceUpdate(skill) && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedSkillForConfidence(skill);
+                                      setIsConfidenceModalOpen(true);
+                                    }}
+                                  >
+                                    <TrendingUp className="w-4 h-4" />
+                                  </Button>
                                 )}
-                              </Button>
+                              </div>
                             </motion.div>
                           );
                         })}
@@ -526,6 +575,12 @@ export default function Dashboard() {
 
               {/* Sidebar */}
               <div className="space-y-6">
+                {isInRecoveryMode && (
+                  <RecoveryModeCard
+                    missedDays={streak?.missed_days || 2}
+                    onStartRecovery={handleStartRecovery}
+                  />
+                )}
                 <StreakCard
                   currentStreak={streak?.current_streak || 0}
                   longestStreak={streak?.longest_streak || 0}
@@ -559,6 +614,26 @@ export default function Dashboard() {
           onClose={() => setIsAddSkillOpen(false)}
           onSubmit={handleAddSkill}
           goalTitle={activeGoal.title}
+        />
+      )}
+      {selectedSkillForOutcome && user && (
+        <LearningOutcomeModal
+          isOpen={isOutcomeModalOpen}
+          onClose={() => setIsOutcomeModalOpen(false)}
+          skillId={selectedSkillForOutcome.id}
+          skillName={selectedSkillForOutcome.name}
+          userId={user.id}
+          onComplete={fetchData}
+        />
+      )}
+      {selectedSkillForConfidence && (
+        <ConfidenceUpdateModal
+          isOpen={isConfidenceModalOpen}
+          onClose={() => setIsConfidenceModalOpen(false)}
+          skillId={selectedSkillForConfidence.id}
+          skillName={selectedSkillForConfidence.name}
+          currentConfidence={selectedSkillForConfidence.confidence_score}
+          onComplete={fetchData}
         />
       )}
     </div>

@@ -56,6 +56,44 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_outcomes: {
+        Row: {
+          clarity_gain: number
+          confusion_note: string | null
+          created_at: string
+          difficulty_feeling: string | null
+          id: string
+          skill_id: string
+          user_id: string
+        }
+        Insert: {
+          clarity_gain: number
+          confusion_note?: string | null
+          created_at?: string
+          difficulty_feeling?: string | null
+          id?: string
+          skill_id: string
+          user_id: string
+        }
+        Update: {
+          clarity_gain?: number
+          confusion_note?: string | null
+          created_at?: string
+          difficulty_feeling?: string | null
+          id?: string
+          skill_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_outcomes_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -63,6 +101,9 @@ export type Database = {
           current_goal: string | null
           display_name: string | null
           id: string
+          learning_style: string | null
+          resource_preference: string | null
+          strongest_skills: string[] | null
           updated_at: string
           user_id: string
         }
@@ -72,6 +113,9 @@ export type Database = {
           current_goal?: string | null
           display_name?: string | null
           id?: string
+          learning_style?: string | null
+          resource_preference?: string | null
+          strongest_skills?: string[] | null
           updated_at?: string
           user_id: string
         }
@@ -81,6 +125,9 @@ export type Database = {
           current_goal?: string | null
           display_name?: string | null
           id?: string
+          learning_style?: string | null
+          resource_preference?: string | null
+          strongest_skills?: string[] | null
           updated_at?: string
           user_id?: string
         }
@@ -139,30 +186,36 @@ export type Database = {
       }
       skills: {
         Row: {
+          confidence_score: number | null
           created_at: string
           days_practiced: number | null
           goal_id: string
           id: string
+          last_confidence_update: string | null
           last_practiced_date: string | null
           name: string
           progress: number | null
           user_id: string
         }
         Insert: {
+          confidence_score?: number | null
           created_at?: string
           days_practiced?: number | null
           goal_id: string
           id?: string
+          last_confidence_update?: string | null
           last_practiced_date?: string | null
           name: string
           progress?: number | null
           user_id: string
         }
         Update: {
+          confidence_score?: number | null
           created_at?: string
           days_practiced?: number | null
           goal_id?: string
           id?: string
+          last_confidence_update?: string | null
           last_practiced_date?: string | null
           name?: string
           progress?: number | null
@@ -183,8 +236,11 @@ export type Database = {
           created_at: string
           current_streak: number | null
           id: string
+          is_in_recovery: boolean | null
           last_activity_date: string | null
           longest_streak: number | null
+          missed_days: number | null
+          recovery_started_at: string | null
           updated_at: string
           user_id: string
         }
@@ -192,8 +248,11 @@ export type Database = {
           created_at?: string
           current_streak?: number | null
           id?: string
+          is_in_recovery?: boolean | null
           last_activity_date?: string | null
           longest_streak?: number | null
+          missed_days?: number | null
+          recovery_started_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -201,8 +260,11 @@ export type Database = {
           created_at?: string
           current_streak?: number | null
           id?: string
+          is_in_recovery?: boolean | null
           last_activity_date?: string | null
           longest_streak?: number | null
+          missed_days?: number | null
+          recovery_started_at?: string | null
           updated_at?: string
           user_id?: string
         }
