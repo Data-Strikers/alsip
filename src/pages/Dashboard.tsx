@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/layout/Header";
-import { DailyPlanCard } from "@/components/dashboard/DailyPlanCard";
 import { StreakCard } from "@/components/dashboard/StreakCard";
 import { GoalProgressCard } from "@/components/dashboard/GoalProgressCard";
 import { CreateGoalModal } from "@/components/dashboard/CreateGoalModal";
+import { AddSkillModal } from "@/components/dashboard/AddSkillModal";
 import { ResourceLibrary } from "@/components/dashboard/ResourceLibrary";
-import { Plus, Calendar, Bell, Settings, Loader2, Target } from "lucide-react";
+import { Plus, Calendar, Bell, Settings, Loader2, Target, Sparkles, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,54 +31,11 @@ interface Skill {
   goal_id: string;
 }
 
-// Mock data for demonstration
-const mockDailyTasks = [
-  {
-    id: "1",
-    type: "micro-concept" as const,
-    title: "Understanding List Comprehensions",
-    description:
-      "Learn how to create lists using concise, readable Python syntax.",
-    duration: 15,
-    completed: false,
-  },
-  {
-    id: "2",
-    type: "practical" as const,
-    title: "Build a Data Filter",
-    description:
-      "Apply list comprehensions to filter and transform a dataset.",
-    duration: 20,
-    completed: false,
-  },
-  {
-    id: "3",
-    type: "variation" as const,
-    title: "Quiz: Comprehension Patterns",
-    description: "Test your understanding with 5 quick questions.",
-    duration: 10,
-    completed: false,
-  },
-  {
-    id: "4",
-    type: "reflection" as const,
-    title: "Daily Reflection",
-    description:
-      "What was the most useful thing you learned today? Where can you apply it?",
-    duration: 5,
-    completed: false,
-  },
-];
-
-const mockWeekData = [
-  { day: "Mon", completed: true },
-  { day: "Tue", completed: true },
-  { day: "Wed", completed: true },
-  { day: "Thu", completed: true },
-  { day: "Fri", completed: false },
-  { day: "Sat", completed: false },
-  { day: "Sun", completed: false },
-];
+interface Streak {
+  current_streak: number | null;
+  longest_streak: number | null;
+  last_activity_date: string | null;
+}
 
 const skillColors = [
   "var(--primary)",
@@ -91,10 +48,12 @@ export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
+  const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [goals, setGoals] = useState<Goal[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
-  const [goalsLoading, setGoalsLoading] = useState(true);
+  const [streak, setStreak] = useState<Streak | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -104,17 +63,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (user) {
-      // Get display name from user metadata
       const name = user.user_metadata?.display_name || user.email?.split("@")[0] || "Learner";
       setDisplayName(name);
-      fetchGoalsAndSkills();
+      fetchData();
     }
   }, [user]);
 
-  const fetchGoalsAndSkills = async () => {
+  const fetchData = async () => {
     if (!user) return;
     
-    setGoalsLoading(true);
+    setDataLoading(true);
     
     // Fetch goals
     const { data: goalsData, error: goalsError } = await supabase
@@ -141,10 +99,25 @@ export default function Dashboard() {
         } else if (skillsData) {
           setSkills(skillsData);
         }
+      } else {
+        setSkills([]);
       }
     }
+
+    // Fetch streak
+    const { data: streakData, error: streakError } = await supabase
+      .from("streaks")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (streakError) {
+      console.error("Error fetching streak:", streakError);
+    } else if (streakData) {
+      setStreak(streakData);
+    }
     
-    setGoalsLoading(false);
+    setDataLoading(false);
   };
 
   const handleCreateGoal = async (goal: {
@@ -155,7 +128,6 @@ export default function Dashboard() {
   }) => {
     if (!user) return;
 
-    // Calculate days remaining based on timeline
     const daysMap: Record<string, number> = {
       "1month": 30,
       "3months": 90,
@@ -180,18 +152,74 @@ export default function Dashboard() {
         description: `"${goal.title}" has been added to your learning path.`,
       });
       setIsCreateGoalOpen(false);
-      fetchGoalsAndSkills(); // Refresh goals
+      fetchData();
+    }
+  };
+
+  const handleAddSkill = async (skillName: string) => {
+    if (!user || !activeGoal) return;
+
+    const { error } = await supabase.from("skills").insert({
+      user_id: user.id,
+      goal_id: activeGoal.id,
+      name: skillName,
+      progress: 0,
+    });
+
+    if (error) {
+      toast.error("Failed to add skill. Please try again.");
+      console.error("Error adding skill:", error);
+    } else {
+      toast.success("Skill added!", {
+        description: `"${skillName}" is now being tracked.`,
+      });
+      fetchData();
+    }
+  };
+
+  const handleUpdateSkillProgress = async (skillId: string, newProgress: number) => {
+    const { error } = await supabase
+      .from("skills")
+      .update({ progress: newProgress })
+      .eq("id", skillId);
+
+    if (error) {
+      toast.error("Failed to update progress.");
+      console.error("Error updating skill:", error);
+    } else {
+      fetchData();
     }
   };
 
   const activeGoal = goals[0];
   const formattedSkills = skills.map((skill, index) => ({
+    id: skill.id,
     name: skill.name,
     progress: skill.progress || 0,
     color: skillColors[index % skillColors.length],
   }));
 
-  if (loading) {
+  // Calculate overall goal progress from skills
+  const overallProgress = skills.length > 0
+    ? Math.round(skills.reduce((acc, s) => acc + (s.progress || 0), 0) / skills.length)
+    : 0;
+
+  // Generate week data based on streak
+  const getWeekData = () => {
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    
+    return days.map((day, index) => {
+      const completed = streak?.current_streak 
+        ? index < (streak.current_streak % 7) 
+        : false;
+      return { day, completed };
+    });
+  };
+
+  if (loading || dataLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -202,6 +230,8 @@ export default function Dashboard() {
   if (!user) {
     return null;
   }
+
+  const hasNoData = goals.length === 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -217,10 +247,12 @@ export default function Dashboard() {
           >
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-                Good morning, {displayName}! 👋
+                Welcome, {displayName}!
               </h1>
               <p className="text-muted-foreground">
-                Ready for today's learning session? Let's make progress together.
+                {hasNoData 
+                  ? "Let's set up your first learning goal to get started."
+                  : "Track your progress and bridge your skill gaps."}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -243,124 +275,242 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* Dashboard Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content - Daily Plan */}
-            <div className="lg:col-span-2 space-y-6">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-foreground">
-                    Today's Learning Plan
+          {/* Empty State for New Users */}
+          {hasNoData ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+            >
+              {/* Main Empty State */}
+              <div className="lg:col-span-2">
+                <div className="bg-card rounded-2xl border border-border/50 shadow-card p-8 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                    <Target className="w-8 h-8 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground mb-3">
+                    Start Your Learning Journey
                   </h2>
-                  <span className="text-sm text-muted-foreground">
-                    {new Date().toLocaleDateString("en-US", {
-                      weekday: "long",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
+                  <p className="text-muted-foreground max-w-md mx-auto mb-6">
+                    Create your first goal to begin tracking your skill development. 
+                    We'll help you identify gaps and build a personalized learning path.
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Button
+                      variant="hero"
+                      size="lg"
+                      onClick={() => setIsCreateGoalOpen(true)}
+                    >
+                      <Plus className="w-5 h-5" />
+                      Create Your First Goal
+                    </Button>
+                  </div>
+
+                  {/* Quick Tips */}
+                  <div className="mt-8 pt-8 border-t border-border/50">
+                    <h3 className="text-sm font-medium text-foreground mb-4">
+                      How ALSIP Helps You
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {[
+                        { icon: Target, title: "Set Goals", desc: "Define what you want to learn" },
+                        { icon: Sparkles, title: "Track Skills", desc: "Add skills and monitor progress" },
+                        { icon: BookOpen, title: "Learn", desc: "Access free curated resources" },
+                      ].map((tip) => (
+                        <div key={tip.title} className="p-4 rounded-xl bg-muted/50">
+                          <tip.icon className="w-5 h-5 text-primary mb-2" />
+                          <h4 className="font-medium text-foreground text-sm">{tip.title}</h4>
+                          <p className="text-xs text-muted-foreground">{tip.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <DailyPlanCard
-                  mode="application"
-                  skill="Python Programming"
-                  tasks={mockDailyTasks}
-                  onTaskComplete={(id) =>
-                    toast("Task completed!", {
-                      description: "Great job! Keep going.",
-                    })
-                  }
-                  onStartSession={() =>
-                    toast("Session started!", {
-                      description: "Focus mode activated. You got this!",
-                    })
-                  }
-                />
-              </motion.div>
+              </div>
 
-              {/* Quick Actions */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-              >
-                {[
-                  { label: "Browse Resources", icon: "📚", color: "mode-concept" },
-                  { label: "Review Progress", icon: "📊", color: "mode-application" },
-                  { label: "Join Community", icon: "👥", color: "mode-analysis" },
-                  { label: "Get Help", icon: "💡", color: "mode-review" },
-                ].map((action, index) => (
-                  <motion.button
-                    key={action.label}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                    className="p-4 rounded-xl bg-card border border-border/50 shadow-card hover:shadow-medium transition-all duration-200 hover:-translate-y-0.5 text-center"
-                  >
-                    <span className="text-2xl mb-2 block">{action.icon}</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {action.label}
-                    </span>
-                  </motion.button>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              <StreakCard
-                currentStreak={4}
-                longestStreak={12}
-                weekData={mockWeekData}
-              />
-              {activeGoal ? (
-                <GoalProgressCard
-                  goalName={activeGoal.title}
-                  overallProgress={activeGoal.progress || 0}
-                  skills={formattedSkills.length > 0 ? formattedSkills : [
-                    { name: "Getting started...", progress: 0, color: skillColors[0] }
-                  ]}
-                  daysRemaining={activeGoal.days_remaining || 0}
+              {/* Sidebar */}
+              <div className="space-y-6">
+                <StreakCard
+                  currentStreak={streak?.current_streak || 0}
+                  longestStreak={streak?.longest_streak || 0}
+                  weekData={getWeekData()}
                 />
-              ) : (
+                <ResourceLibrary />
+              </div>
+            </motion.div>
+          ) : (
+            /* Dashboard with Data */
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Content */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Goals List */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-card rounded-2xl border border-border/50 shadow-card p-6 text-center"
+                  transition={{ delay: 0.1 }}
                 >
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Target className="w-6 h-6 text-primary" />
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-foreground">
+                      Your Goals
+                    </h2>
+                    <span className="text-sm text-muted-foreground">
+                      {goals.length} active goal{goals.length !== 1 ? "s" : ""}
+                    </span>
                   </div>
-                  <h3 className="font-semibold text-foreground mb-2">No Active Goals</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Set a learning goal to start tracking your progress
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsCreateGoalOpen(true)}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Create Goal
-                  </Button>
+                  <div className="space-y-4">
+                    {goals.map((goal, index) => (
+                      <motion.div
+                        key={goal.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="bg-card rounded-xl border border-border/50 shadow-card p-5"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="font-semibold text-foreground">{goal.title}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {goal.category} • {goal.days_remaining} days remaining
+                            </p>
+                          </div>
+                          <span className="text-sm font-medium text-primary">
+                            {goal.progress || 0}%
+                          </span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${goal.progress || 0}%` }}
+                            transition={{ duration: 0.8 }}
+                            className="h-full rounded-full gradient-primary"
+                          />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
                 </motion.div>
-              )}
-              <ResourceLibrary />
+
+                {/* Skills Section */}
+                {activeGoal && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-semibold text-foreground">
+                        Skills for: {activeGoal.title}
+                      </h2>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsAddSkillOpen(true)}
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Skill
+                      </Button>
+                    </div>
+                    
+                    {skills.length === 0 ? (
+                      <div className="bg-card rounded-xl border border-border/50 shadow-card p-6 text-center">
+                        <Sparkles className="w-8 h-8 text-primary mx-auto mb-3" />
+                        <p className="text-muted-foreground mb-4">
+                          No skills added yet. Add skills to track your progress.
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsAddSkillOpen(true)}
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add Your First Skill
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {skills.map((skill, index) => (
+                          <motion.div
+                            key={skill.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="bg-card rounded-xl border border-border/50 shadow-card p-4"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-medium text-foreground">{skill.name}</span>
+                              <span className="text-sm text-primary font-semibold">
+                                {skill.progress || 0}%
+                              </span>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${skill.progress || 0}%` }}
+                                transition={{ duration: 0.6 }}
+                                className="h-full rounded-full"
+                                style={{ backgroundColor: `hsl(${skillColors[index % skillColors.length]})` }}
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              {[25, 50, 75, 100].map((val) => (
+                                <button
+                                  key={val}
+                                  onClick={() => handleUpdateSkillProgress(skill.id, val)}
+                                  className={`flex-1 py-1 text-xs rounded-lg transition-colors ${
+                                    (skill.progress || 0) >= val
+                                      ? "bg-primary/20 text-primary"
+                                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                  }`}
+                                >
+                                  {val}%
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-6">
+                <StreakCard
+                  currentStreak={streak?.current_streak || 0}
+                  longestStreak={streak?.longest_streak || 0}
+                  weekData={getWeekData()}
+                />
+                {activeGoal && (
+                  <GoalProgressCard
+                    goalName={activeGoal.title}
+                    overallProgress={overallProgress}
+                    skills={formattedSkills.length > 0 ? formattedSkills : []}
+                    daysRemaining={activeGoal.days_remaining || 0}
+                    onAddSkill={() => setIsAddSkillOpen(true)}
+                  />
+                )}
+                <ResourceLibrary />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
 
-      {/* Create Goal Modal */}
+      {/* Modals */}
       <CreateGoalModal
         isOpen={isCreateGoalOpen}
         onClose={() => setIsCreateGoalOpen(false)}
         onSubmit={handleCreateGoal}
       />
+      {activeGoal && (
+        <AddSkillModal
+          isOpen={isAddSkillOpen}
+          onClose={() => setIsAddSkillOpen(false)}
+          onSubmit={handleAddSkill}
+          goalTitle={activeGoal.title}
+        />
+      )}
     </div>
   );
 }
