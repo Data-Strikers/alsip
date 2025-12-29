@@ -87,16 +87,17 @@ export const CreateGoalModal = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-[100]"
           />
 
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-4 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 w-auto sm:w-full sm:max-w-lg max-h-[90vh] bg-card rounded-2xl shadow-medium border border-border/50 z-50 overflow-hidden flex flex-col"
-          >
+          {/* Modal Container - Centers the modal */}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-lg max-h-[85vh] bg-card rounded-2xl shadow-medium border border-border/50 overflow-hidden flex flex-col pointer-events-auto"
+            >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-border/30">
               <div className="flex items-center gap-3">
@@ -306,6 +307,7 @@ export const CreateGoalModal = ({
               </Button>
             </div>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
