@@ -140,24 +140,30 @@ export type Database = {
       skills: {
         Row: {
           created_at: string
+          days_practiced: number | null
           goal_id: string
           id: string
+          last_practiced_date: string | null
           name: string
           progress: number | null
           user_id: string
         }
         Insert: {
           created_at?: string
+          days_practiced?: number | null
           goal_id: string
           id?: string
+          last_practiced_date?: string | null
           name: string
           progress?: number | null
           user_id: string
         }
         Update: {
           created_at?: string
+          days_practiced?: number | null
           goal_id?: string
           id?: string
+          last_practiced_date?: string | null
           name?: string
           progress?: number | null
           user_id?: string
