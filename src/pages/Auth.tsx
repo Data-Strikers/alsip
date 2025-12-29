@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Sprout, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { GraduationCap, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -98,7 +98,7 @@ export default function Auth() {
           {/* Logo */}
           <div className="flex items-center justify-center gap-2 mb-8">
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-soft">
-              <Sprout className="w-5 h-5 text-primary-foreground" />
+              <GraduationCap className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-bold text-2xl tracking-tight text-foreground">
               ALSIP

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sprout, Menu, X, LogOut, User } from "lucide-react";
+import { GraduationCap, Menu, X, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -34,7 +34,7 @@ export const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-soft group-hover:shadow-glow transition-shadow duration-300">
-              <Sprout className="w-5 h-5 text-primary-foreground" />
+              <GraduationCap className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-bold text-xl tracking-tight text-foreground">
               ALSIP
